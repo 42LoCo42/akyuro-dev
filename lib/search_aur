@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+# keywords
+search_aur() {
+	local base_keyword="$1"
+	shift
+	log "Querying aurweb RPC"
+	curl -s "https://aur.archlinux.org/rpc/?v=5&type=search&arg=$base_keyword" |
+	jq '.results[] | .Name, .Version, .NumVotes,
+		.Popularity, .Maintainer, .OutOfDate, .Description' |
+	tr -d '"' | join_n_lines 7 "$SEPARATOR" | refine_search "$@" |
+	sort -t "$SEPARATOR" -k 3 -n -r |
+	sed -E "s|(.)$|\1aur${SEPARATOR}|g" |
+	on_field 3 "$SEPARATOR" sed -E 's|^(.)|+\1|g' |
+	on_field 4 "$SEPARATOR" xargs printf "%0.2f"
+}
+
+# package
+download_aur() {
+	rm -rf "$1"
+	mkdir -p "$1/files"
+	git clone "https://aur.archlinux.org/$1.git" "$1"
+	cd "$1" || die "Couldn't get git repo for PKGBUILD of $1"
+	find . -mindepth 1 ! -path '*.git*' ! -name '.SRCINFO' > "sources"
+	cp "$LIBDIR/build_aur" "build"
+}

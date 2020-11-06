@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+
+die() {
+	echo "[38;5;1m$1[m"
+	exit 1
+}
+
+(($# < 1)) && die "No pkgdir given!"
+pkgdir="$(readlink -f "$1")"
