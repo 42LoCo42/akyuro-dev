@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+MIRRORLIST="#MIRRORLIST#"
+
 die() {
 	echo "[38;5;1m$1[m"
 	exit 1

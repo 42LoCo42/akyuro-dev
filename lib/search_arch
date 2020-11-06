@@ -138,6 +138,8 @@ search_arch() {
 download_arch() {
 	rm -rf "$1"
 	mkdir -p "$1/files"
-	cp "$TMPDIR/$3-pkgs/$1-$2/desc" "$1"
+	cd "$1" || die "Couldn't create package directory $PWD/$1"
+	cp "$TMPDIR/$3-pkgs/$1-$2/desc" "files/"
 	cp "$LIBDIR/build_arch" "build"
+	sed "s|#MIRRORLIST#|${MIRRORLIST}|g" -i build
 }
