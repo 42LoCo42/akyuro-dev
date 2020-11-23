@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-set -e
 
+AKYURO_EXT="#AKYURO_EXT#"
 MIRRORLIST="#MIRRORLIST#"
+REPO="#REPO#"
 
 die() {
 	echo "[38;5;1m$1[m"
@@ -10,3 +11,25 @@ die() {
 
 (($# < 1)) && die "No pkgdir given!"
 pkgdir="$(readlink -f "$1")"
+
+file="$(pcre2grep -M "%FILENAME%\n.*" "desc" | sed 1d)"
+
+while read -r mirror; do
+	mirror="${mirror//\$repo/${REPO}}"
+	case "$mirror" in
+		http://*|https://*)
+			curl -LO "$mirror/$file"
+		;;
+		rsync://*)
+			rsync -vtL "$mirror/$file" "$file"
+		;;
+	esac || continue
+	[ -f "$file" ] || continue
+	"$AKYURO_EXT" "$file" "$pkgdir" || continue
+	got_file=1
+	break
+done < "$MIRRORLIST"
+
+[ -z "$got_file" ] && die "Could not download file $file"
+
+rm "$pkgdir/.BUILDINFO" "$pkgdir/.MTREE" "$pkgdir/.PKGINFO"

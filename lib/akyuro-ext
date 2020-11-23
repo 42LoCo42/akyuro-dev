@@ -1,20 +1,21 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 # A general, all-purpose extraction script.
 #
 # Default behavior: Extract archive into given directory
 #
 # Slightly changed version for use with akyuro
 
-archive="$(readlink -f "$(echo "$*" | cut -d' ' -f2)")"
+archive="$(readlink -f "$1")"
 
-[ "$archive" = "" ] && exit 1
+cd "$2" || exit 1
+[ -z "$archive" ] && exit 1
 
 if [ -f "$archive" ] ; then
 	case "$archive" in
 		*.tar.bz2|*.tbz2) tar xvjf "$archive" ;;
 		*.tar.xz) tar xvJf "$archive" ;;
 		*.tar.gz|*.tgz) tar xvzf "$archive" ;;
-		*.tar.zst|*.tzst) tar xv --zstd -f "$archive" ;;
+		*.tar.zst|*.tzst) tar xv --zstd -f "$archive" || zstd -c -d "$archive" | tar x ;;
 		*.zst) zstd -d "$archive" ;;
 		*.lzma) unlzma "$archive" ;;
 		*.bz2) bunzip2 "$archive" ;;

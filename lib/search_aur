@@ -16,11 +16,31 @@ search_aur() {
 }
 
 # package
-download_aur() {
+download_aur_package() {
 	rm -rf "$1"
-	mkdir -p "$1/files"
 	git clone "https://aur.archlinux.org/$1.git" "$1"
 	cd "$1" || die "Couldn't get git repo for PKGBUILD of $1"
-	find . -mindepth 1 ! -path '*.git*' ! -name '.SRCINFO' > "sources"
+	update_aur_package
+}
+
+update_aur_package() {
+	# create sources file
+	find . -mindepth 1 -maxdepth 1 ! -path '*.git*' ! -name '.SRCINFO' ! -name "sources" > "sources"
+	rm -rf "files"
+	mkdir "files"
+	while read -r source; do
+		mv "$source" "files/"
+	done < "sources"
+	sed -E 's|^./|files/|g' -i "sources"
+
+	# create version file
+	source "files/PKGBUILD"
+	echo "$pkgver $pkgrel" > version
+
+	# create checksums file
+	sha256sum "files/"* > checksums
+
+	# copy build script
 	cp "$LIBDIR/build_aur" "build"
+	sed "s|#AKYURO_EXT#|${LIBDIR}/akyuro-ext|g" -i build
 }

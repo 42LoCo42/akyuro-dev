@@ -2,6 +2,8 @@
 set -e
 source PKGBUILD
 
+AKYURO_EXT="#AKYURO_EXT#"
+
 die() {
 	echo "[38;5;1m$1[m"
 	exit 1
@@ -20,7 +22,7 @@ akyuro_pkgname="$pkgbase"
 cd "$srcdir"
 
 download_git() {
-	[ -z "$akyuro_dir" ] && akyuro_dir="$akyuro_pkgname"
+	akyuro_dir="${akyuro_dir%.git}"
 	mkdir -p "$akyuro_dir"
 	cd "$akyuro_dir"
 	[ -d ".git" ] || {
@@ -58,6 +60,7 @@ download_sources() {
 		akyuro_source="${akyuro_source#*#}"
 		[ "$akyuro_source" == "$akyuro_url" ] && akyuro_source=""
 		akyuro_source="${akyuro_source#branch=}"
+		akyuro_source="${akyuro_source#commit=}"
 
 		echo "[38;5;2mSource info:"
 		[ -z "$akyuro_dir" ]    || echo "  [38;5;4mname[m $akyuro_dir"
@@ -65,18 +68,15 @@ download_sources() {
 		[ -z "$akyuro_url" ]    || echo "  [38;5;4murl[m  $akyuro_url"
 		[ -z "$akyuro_source" ] || echo "  [38;5;4mfrag[m $akyuro_source"
 
+		# generate target name from url if empty
+		[ -z "$akyuro_dir" ] && akyuro_dir="${akyuro_url##*/}"
+
 		# download source
 		case "$akyuro_vcs" in
 			"")
 				case "$akyuro_url" in
 					http://*|https://*)
-						case "$akyuro_dir" in
-							"")
-								curl -fLO "$akyuro_url" -z "${akyuro_url##*/}"
-							;;
-							*)
-								curl -fL "$akyuro_url" -o "$akyuro_dir" -z "$akyuro_dir"
-						esac
+						curl -fL "$akyuro_url" -o "$akyuro_dir" -z "$akyuro_dir"
 					;;
 					git://*)
 						download_git
@@ -90,6 +90,10 @@ download_sources() {
 				download_git
 			;;
 		esac
+
+		# try to extract source
+		"$AKYURO_EXT" "$akyuro_dir" "." || true
+
 	done
 	echo "[38;5;2mSources are ready![m"
 }

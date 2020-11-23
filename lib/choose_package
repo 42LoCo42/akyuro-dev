@@ -48,24 +48,25 @@ choose_package() {
 	[ "${#packages[@]}" == 0 ] && die "No packages found!"
 
 	for ((i = "${#packages[@]}" - 1; i >= 0; i--)); do
-		echo -ne "[38;5;5m$i[m "
+		echo -ne "[38;5;5m$((i + 1))[m "
 		display_package "${packages[i]}"
 	done
 
 	while
 		[ -z "$package_ix" ] ||
 		is_no_number "$package_ix" ||
-		((package_ix >= "${#packages[@]}")); do
+		((package_ix <= 0)) ||
+		((package_ix - 1 >= "${#packages[@]}")); do
 		echo "[1m[38;5;2m==>[m Package to install:"
 		read -r -p "[1m[38;5;2m==>[m " package_ix || return
 	done
-
+	((package_ix = package_ix - 1))
 	package_name="$(echo "${packages[package_ix]}" | awk -F "$SEPARATOR" '{print $1}')"
 	package_vers="$(echo "${packages[package_ix]}" | awk -F "$SEPARATOR" '{print $2}')"
 	package_repo="$(echo "${packages[package_ix]}" | awk -F "$SEPARATOR" '{print $8}')"
 	if [ "$package_repo" == "aur" ]; then
-		download_aur "$package_name"
+		download_aur_package "$package_name"
 	else
-		download_arch "$package_name" "$package_vers" "$package_repo"
+		download_arch_package "$package_name" "$package_vers" "$package_repo"
 	fi
 }

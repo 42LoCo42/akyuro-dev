@@ -4,7 +4,7 @@ cd "$(dirname "$(readlink -f "$0")")" || exit 1
 
 declare -r SEPARATOR=""
 declare -r LIBDIR="$PWD"
-declare -r MAINDIR="$HOME/tmp/akyuro/maindir" # /var/db/akyuro
+declare -r MAINDIR="$HOME/builds/akyuro-dev/maindir" # /var/db/akyuro
 declare -r PACKAGES="$MAINDIR/packages"
 declare -r MIRRORLIST="$MAINDIR/mirrorlist"
 declare -r REPOLIST="$MAINDIR/repolist"
@@ -80,7 +80,6 @@ source search_aur
 source search_arch
 source choose_package
 
-mkdir -p "$MAINDIR"
 cd "$MAINDIR" || die "$MAINDIR not found!"
 
 (($# == 0)) && die "Update all"
